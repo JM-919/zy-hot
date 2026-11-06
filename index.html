@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>今日热榜 · 全网热点实时聚合</title>
+<meta name="description" content="聚合微博、知乎、百度、B站、GitHub、Hacker News 等 28 个平台的实时热榜，每 5 分钟自动刷新，零后端纯静态。">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f2ec">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#131519">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23e8442e' d='M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z'/%3E%3C/svg%3E">
+<script>
+/* 主题预渲染：避免闪烁（必须内联，先于样式执行） */
+(function () {
+  var t = null;
+  try { t = localStorage.getItem('hotboard-theme'); } catch (e) {}
+  if (!t) { try { t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; } catch (e) { t = 'light'; } }
+  document.documentElement.dataset.theme = t;
+})();
+</script>
+<link rel="stylesheet" href="hot.css">
+</head>
+<body>
+<div class="heatline" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
+      <div>
+        <h1>今日<em>热榜</em></h1>
+        <p class="tag">全网热点 · 实时聚合</p>
+      </div>
+    </div>
+    <div class="hd-right">
+      <div class="clock">
+        <div class="time" id="clock-time">--<i>:</i>--<i>:</i>--</div>
+        <div class="date" id="clock-date">加载中…</div>
+      </div>
+      <button class="iconbtn" id="btn-refresh" aria-label="刷新全部榜单" title="刷新全部榜单">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
+      </button>
+      <button class="iconbtn tbtn" id="btn-theme" aria-label="切换深浅主题" title="切换主题">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero reveal">
+    <h2 class="hero-t">此刻，全网都在看什么</h2>
+    <p class="hero-s">28 个平台 · 5 大分类 · 每 5 分钟自动刷新</p>
+    <div class="search">
+      <svg class="sic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="q" placeholder="搜索热榜关键词…" aria-label="搜索热榜" autocomplete="off">
+      <button class="clr" id="q-clr" aria-label="清空搜索" title="清空">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <p class="sstat" id="sstat" hidden></p>
+  </div>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="榜单分类"></nav>
+  <div class="board" id="board"></div>
+
+  <footer class="foot reveal">
+    <p>数据来自各平台公开热榜接口（经 <a href="https://api.codelife.cc" target="_blank" rel="noopener noreferrer">codelife</a> 等聚合服务），仅供参考。</p>
+    <p class="mono">
+      <span>本页已运行 <b id="stat-uptime">—</b></span>
+      <span>加载耗时 <b id="stat-load">—</b></span>
+    </p>
+  </footer>
+</main>
+
+<button class="fbtn" id="f-top" aria-label="回到顶部" title="回到顶部" hidden>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 15 7-7 7 7"/></svg>
+</button>
+<button class="fbtn" id="f-bottom" aria-label="到页面底部" title="到底部" hidden>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 9 7 7 7-7"/></svg>
+</button>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="sources.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
