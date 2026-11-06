@@ -2,7 +2,7 @@
 
 一个**纯静态、零后端、零构建**的热榜聚合页：28 个平台 / 5 大分类 / 深浅双主题，每 5 分钟自动刷新。
 
-> 在线地址：**https://felix52lin.gitee.io/zy-hot/**（Gitee Pages）
+> 在线地址：**https://jm-919.github.io/zy-hot/**
 
 ## 有什么
 
